@@ -20,7 +20,7 @@ function technic.register_alloy_furnace(data)
 				count_existing_of_incomming_type = count_existing_of_incomming_type + count
 			end
 		end
-		if 0 == count_existing_of_incomming_type return inv:add_item("src", stack) end
+		if 0 == count_existing_of_incomming_type then return inv:add_item("src", stack) end
 		local stack_max = stack:get_stack_max()
 		local overflow = count_existing_of_incomming_type + count_incomming - stack_max
 		if 0 < overflow then
