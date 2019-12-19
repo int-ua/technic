@@ -6,6 +6,34 @@ function technic.register_alloy_furnace(data)
 	data.machine_name = "alloy_furnace"
 	data.machine_desc = S("%s Alloy Furnace")
 
+	data.insert_object = function(pos, node, stack, direction)
+		local meta = minetest.get_meta(pos)
+		local inv = meta:get_inventory()
+		local incomming_name = stack:get_name()
+		local count_total = 0
+		local count_existing_of_incomming_type = 0
+		local count_incomming = stack:get_count()
+		for _, inv_stack in pairs(inv:get_list("src")) do
+			local count = inv_stack:get_count()
+			count_total = count_total + count
+			if inv_stack:get_name() == incomming_name then
+				count_existing_of_incomming_type = count_existing_of_incomming_type + count
+			end
+		end
+		if 0 == count_existing_of_incomming_type return inv:add_item("src", stack) end
+		local stack_max = stack:get_stack_max()
+		local overflow = count_existing_of_incomming_type + count_incomming - stack_max
+		if 0 < overflow then
+			local return_stack = stack:peek_item(overflow)
+			local add_stack = stack:peek_item(stack_max - count_existing_of_incomming_type)
+			inv:add_item("src", add_stack)
+			return return_stack
+		else
+			-- possibly works too: return inv:add_item(......)
+			inv:add_item("src", stack)
+			return ItemStack(nil)
+		end
+	end
 	data.can_insert = function(pos, node, stack, direction)
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
@@ -14,8 +42,9 @@ function technic.register_alloy_furnace(data)
 		end
 
 		-- reject second stack of item that is already present
+		local incomming_name = stack:get_name()
 		for _,inv_stack in pairs(inv:get_list("src")) do
-			if not inv_stack:is_empty() and inv_stack:get_name() == stack:get_name() then
+			if not inv_stack:is_empty() and inv_stack:get_name() == incomming_name then
 				return inv_stack:item_fits(stack)
 			end
 		end
@@ -25,4 +54,3 @@ function technic.register_alloy_furnace(data)
 
 	technic.register_base_machine(data)
 end
-
