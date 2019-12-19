@@ -4,20 +4,22 @@ local S = technic.getter
 local fs_helpers = pipeworks.fs_helpers
 local tube_entry = "^pipeworks_tube_connection_metallic.png"
 
-local tube = {
+technic.default_can_insert = function(pos, node, stack, direction)
+	local meta = minetest.get_meta(pos)
+	local inv = meta:get_inventory()
+	if meta:get_int("splitstacks") == 1 then
+		stack = stack:peek_item(1)
+	end
+	return inv:room_for_item("src", stack)
+end
+
+local default_tube = {
 	insert_object = function(pos, node, stack, direction)
 		local meta = minetest.get_meta(pos)
 		local inv = meta:get_inventory()
 		return inv:add_item("src", stack)
 	end,
-	can_insert = function(pos, node, stack, direction)
-		local meta = minetest.get_meta(pos)
-		local inv = meta:get_inventory()
-		if meta:get_int("splitstacks") == 1 then
-			stack = stack:peek_item(1)
-		end
-		return inv:room_for_item("src", stack)
-	end,
+	can_insert = technic.default_can_insert,
 	connect_sides = {left = 1, right = 1, back = 1, top = 1, bottom = 1},
 }
 
@@ -62,6 +64,11 @@ function technic.register_base_machine(data)
 			"listring[current_player;main]"..
 			"listring[current_name;upgrade2]"..
 			"listring[current_player;main]"
+	end
+
+	local tube = default_tube
+	if data.can_insert then
+		tube.can_insert = data.can_insert
 	end
 
 	local run = function(pos, node)
